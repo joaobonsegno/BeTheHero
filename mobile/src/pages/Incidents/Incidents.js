@@ -17,10 +17,25 @@ export default function Incidents() {
     const [totalIncidentsNumber, setTotalIncidentsNumber] = useState(0);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+
 
     useEffect(() => {
         loadIncidents();
     }, []);
+
+    useEffect(() => {
+        if (page === 1) {
+            setIncidents([]);
+        }
+    }, [page]);
+
+    useEffect(() => {
+        if (incidents.length === 0) {
+            loadIncidents();
+        }
+    }, [incidents])
+
 
     async function loadIncidents() {
 
@@ -41,12 +56,19 @@ export default function Incidents() {
 
             setTotalIncidentsNumber(response.headers['x-total-count']);
 
-            setPage(page+1);
+            setPage(page + 1);
             setLoading(false);
+            setRefreshing(false);
         } catch (err) {
             console.log('Erro na requisição');
             setLoading(false);
+            setRefreshing(false);
         }
+    }
+
+    function handleRefresh() {
+        setRefreshing(true);
+        setPage(1);
     }
 
     function navigateToDetail(incident) {
@@ -76,6 +98,8 @@ export default function Incidents() {
                 //showsVerticalScrollIndicator={false}
                 onEndReached={loadIncidents}
                 onEndReachedThreshold={0.2}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
                 renderItem={({ item: incident }) => (
                     <View style={styles.incident}>
                         <Text style={styles.incidentProperty}>ONG:</Text>
